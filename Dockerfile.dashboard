@@ -1,0 +1,21 @@
+FROM python:3.14-slim
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libgomp1 \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+COPY requirements-dashboard.txt .
+RUN pip install --no-cache-dir --retries 10 --default-timeout=120 -r requirements-dashboard.txt
+
+COPY src/ ./src/
+COPY models/ ./models/
+COPY dataset/ ./dataset/
+
+RUN useradd --create-home appuser && chown -R appuser:appuser /app
+USER appuser
+
+EXPOSE 8501
+
+CMD ["streamlit", "run", "src/dashboard/Home.py", "--server.address=0.0.0.0", "--server.port=8501"]

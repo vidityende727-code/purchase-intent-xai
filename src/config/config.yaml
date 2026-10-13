@@ -1,0 +1,51 @@
+project: 
+  name: "purchase-intent-xai" 
+  version: "0.1.0" 
+paths: 
+  raw_data: "dataset/ecommerce_sessions.csv" 
+  data_dictionary: "dataset/data_dictionary.csv" 
+  models_dir: "models"
+random_seed: 42 
+target: 
+  column: "Converted" 
+  positive_label: 1 
+split: 
+  test_size: 0.2 
+  stratify: true  
+columns: 
+  numeric: 
+    - "Administrative" 
+    - "Administrative_Duration" 
+    - "Informational" 
+    - "Informational_Duration" 
+    - "ProductRelated" 
+    - "ProductRelated_Duration" 
+    - "BounceRates" 
+    - "ExitRates" 
+    - "PageValues" 
+    - "SpecialDay" 
+   
+
+  categorical: 
+    - "Month" 
+    - "VisitorType" 
+    - "Weekend" 
+    - "OperatingSystems" 
+    - "Browser" 
+    - "Region" 
+    - "TrafficType"  
+
+  skewed_numeric:
+    - "Administrative_Duration"
+    - "Informational_Duration"
+    - "ProductRelated_Duration"
+    - "BounceRates"
+    - "ExitRates"
+    - "PageValues"
+    - "TotalDuration"
+    - "AvgTimePerPage" 
+
+  engineered_numeric:
+    - "TotalPagesViewed"
+    - "TotalDuration"
+    - "AvgTimePerPage"

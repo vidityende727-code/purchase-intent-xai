@@ -1,0 +1,6 @@
+row_index,predicted_proba,actual_label,top_features
+1855,0.0011578811575302748,0,skewed__PageValues: -5.114; normal_numeric__ProductRelated: -0.331; normal_numeric__TotalPagesViewed: -0.199; skewed__BounceRates: +0.153; categorical__OperatingSystems_1: -0.152
+1052,0.778157621758681,1,skewed__PageValues: +1.567; normal_numeric__TotalPagesViewed: +0.499; normal_numeric__ProductRelated: +0.386; categorical__Region_3: -0.323; categorical__Month_Dec: -0.259
+1569,0.0005416867946815312,0,skewed__PageValues: -4.749; skewed__ProductRelated_Duration: -0.292; categorical__TrafficType_15: -0.289; categorical__VisitorType_New_Visitor: -0.287; normal_numeric__ProductRelated: -0.268
+213,0.109046003406584,0,skewed__PageValues: +1.482; normal_numeric__ProductRelated: -0.455; categorical__TrafficType_6: -0.395; skewed__ExitRates: -0.313; normal_numeric__TotalPagesViewed: -0.251
+1039,0.3819699079280653,0,skewed__PageValues: +1.777; categorical__TrafficType_13: -0.560; categorical__OperatingSystems_6: +0.381; categorical__Month_Dec: -0.359; skewed__ExitRates: +0.325
