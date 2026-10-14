@@ -2,7 +2,6 @@ venv/
 __pycache__/
 *.pyc
 .env
-models/*.joblib
 logs/
 .pytest_cache/ 
 mlruns/

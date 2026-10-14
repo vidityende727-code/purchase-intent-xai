@@ -1,9 +1,6 @@
 import numpy as np
 from lime.lime_tabular import LimeTabularExplainer
 
-from src.models.train import prepare_data
-from src.explain.shap_analysis import load_trained_artifacts
-
 
 def build_lime_explainer(X_train, feature_names):
     if hasattr(X_train, "toarray"):

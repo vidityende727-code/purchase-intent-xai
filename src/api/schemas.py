@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 
+
 class SessionInput(BaseModel):
     Administrative: int
     Administrative_Duration: float
@@ -18,6 +19,7 @@ class SessionInput(BaseModel):
     TrafficType: int
     VisitorType: str
     Weekend: bool
+
 
 class PredictionResponse(BaseModel):
     purchase_probability: float

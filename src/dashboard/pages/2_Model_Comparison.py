@@ -36,7 +36,11 @@ recall = find_col(metric_cols, "recall")
 lead = [c for c in (pr_auc, recall) if c]
 rest = [c for c in metric_cols if c not in lead]
 
-df = df[[model_col] + lead + rest].sort_values(lead[0], ascending=False).reset_index(drop=True)
+df = (
+    df[[model_col] + lead + rest]
+    .sort_values(lead[0], ascending=False)
+    .reset_index(drop=True)
+)
 
 DEPLOYED_MODEL = "CatBoost"
 
@@ -50,7 +54,9 @@ DEPLOYED_MODEL = "CatBoost"
 
 st.subheader("Metrics table")
 st.dataframe(
-    df.style.format({c: "{:.3f}" for c in metric_cols}).highlight_max(subset=lead, color="#1f6f43"),
+    df.style.format({c: "{:.3f}" for c in metric_cols}).highlight_max(
+        subset=lead, color="#1f6f43"
+    ),
     use_container_width=True,
     hide_index=True,
 )
@@ -62,12 +68,24 @@ st.caption(
 col1, col2 = st.columns(2)
 with col1:
     st.plotly_chart(
-        px.bar(df, x=model_col, y=lead[0], text=df[lead[0]].round(3), title=f"{lead[0]} by model"),
+        px.bar(
+            df,
+            x=model_col,
+            y=lead[0],
+            text=df[lead[0]].round(3),
+            title=f"{lead[0]} by model",
+        ),
         use_container_width=True,
     )
 with col2:
     if len(lead) > 1:
         st.plotly_chart(
-            px.bar(df, x=model_col, y=lead[1], text=df[lead[1]].round(3), title=f"{lead[1]} by model"),
+            px.bar(
+                df,
+                x=model_col,
+                y=lead[1],
+                text=df[lead[1]].round(3),
+                title=f"{lead[1]} by model",
+            ),
             use_container_width=True,
-        ) 
+        )

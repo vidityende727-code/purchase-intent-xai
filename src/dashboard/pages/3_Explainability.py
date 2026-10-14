@@ -15,8 +15,9 @@ LOCAL_CSV = MODELS_DIR / "shap_local_examples.csv"
 missing = [p.name for p in (IMPORTANCE_CSV, SUMMARY_PNG, LOCAL_CSV) if not p.exists()]
 if missing:
     st.error(
-        "Missing explainability artifacts: " + ", ".join(missing) +
-        ". Run `python -m src.explain.generate_artifacts` first."
+        "Missing explainability artifacts: "
+        + ", ".join(missing)
+        + ". Run `python -m src.explain.generate_artifacts` first."
     )
     st.stop()
 
@@ -58,7 +59,9 @@ st.image(str(SUMMARY_PNG), use_container_width=True)
 
 # --- Local explanation demo ---
 st.subheader("Local explanation demo")
-st.caption("Pick a sample test-set row to see which features pushed its prediction up or down.")
+st.caption(
+    "Pick a sample test-set row to see which features pushed its prediction up or down."
+)
 
 options = local_df["row_index"].tolist()
 selected = st.selectbox(
@@ -73,10 +76,16 @@ selected = st.selectbox(
 row = local_df[local_df.row_index == selected].iloc[0]
 col1, col2 = st.columns(2)
 col1.metric("Predicted probability", f"{row['predicted_proba']:.1%}")
-col2.metric("Actual outcome", "Purchased" if row["actual_label"] == 1 else "No purchase")
+col2.metric(
+    "Actual outcome", "Purchased" if row["actual_label"] == 1 else "No purchase"
+)
 
 st.write("**Top contributing features:**")
 for part in row["top_features"].split("; "):
     feature, value = part.rsplit(": ", 1)
-    sign = "🟢 pushes toward purchase" if value.startswith("+") else "🔴 pushes away from purchase"
-    st.write(f"- `{feature}`: {value}  — {sign}") 
+    sign = (
+        "🟢 pushes toward purchase"
+        if value.startswith("+")
+        else "🔴 pushes away from purchase"
+    )
+    st.write(f"- `{feature}`: {value}  — {sign}")

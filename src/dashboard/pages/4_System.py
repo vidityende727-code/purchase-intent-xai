@@ -1,6 +1,7 @@
+import os
+
 import requests
 import streamlit as st
-import os
 
 st.set_page_config(page_title="System", layout="wide")
 st.title("System")
