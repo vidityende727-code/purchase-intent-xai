@@ -4,9 +4,9 @@
 
 This project uses **CatBoost Classifier** as the final model for predicting purchase intent (binary classification: whether an e-commerce session results in a purchase — `Converted` = 1/0).
 
-During model selection, six algorithms were trained and compared: Logistic Regression, Decision Tree, Random Forest, XGBoost, LightGBM, and CatBoost. CatBoost was chosen as the final model because it achieved the highest **PR-AUC (0.856)** — the primary evaluation metric given the dataset's class imbalance (only 15.72% of sessions convert). PR-AUC is more reliable than accuracy or ROC-AUC in imbalanced settings because it focuses on how well the model identifies the minority (buyer) class.
+During model selection, six algorithms were trained and compared: Logistic Regression, Decision Tree, Random Forest, XGBoost, LightGBM, and CatBoost. CatBoost was chosen as the final model: its **PR-AUC (0.855)** is effectively tied with LightGBM (0.8550 vs 0.8552, a gap far below noise), and both clearly outperform the other four models. PR-AUC is the primary evaluation metric given the dataset's class imbalance (only 15.72% of sessions convert), and it is more reliable than accuracy or ROC-AUC in imbalanced settings because it focuses on how well the model identifies the minority (buyer) class.
 
-CatBoost's strength likely comes from its native handling of categorical features — the dataset has 7 categorical columns (e.g., Month, VisitorType, TrafficType), and CatBoost is specifically optimized for datasets with many categorical variables, giving it an edge over gradient boosting alternatives like XGBoost and LightGBM here. 
+CatBoost's strength likely comes from its native handling of categorical features — the dataset has 7 categorical columns (e.g., Month, VisitorType, TrafficType), and CatBoost is specifically designed for datasets with many categorical variables. LightGBM performed almost identically on this dataset, so the choice reflects CatBoost's native categorical handling and the fact that the full pipeline (API, SHAP, LIME) is built around it, rather than a clear performance win. 
 
 ## 2. Training Data
 
@@ -45,20 +45,20 @@ All 6 models were evaluated on the held-out test set (2,400 sessions, natural im
 
 | Model | Accuracy | Precision | Recall | F1 | ROC-AUC | PR-AUC |
 |---|---|---|---|---|---|---|
-| Logistic Regression | 0.902 | 0.628 | 0.928 | 0.749 | 0.970 | 0.834 |
-| Decision Tree | 0.902 | 0.660 | 0.777 | 0.714 | 0.851 | 0.548 |
-| Random Forest | 0.926 | 0.732 | 0.833 | 0.779 | 0.966 | 0.829 |
-| XGBoost | 0.925 | 0.762 | 0.764 | 0.763 | 0.967 | 0.840 |
-| LightGBM | 0.933 | 0.768 | 0.825 | 0.795 | 0.971 | 0.849 |
-| **CatBoost (final)** | 0.928 | 0.751 | 0.809 | 0.779 | 0.970 | **0.856** |
+| Logistic Regression | 0.903 | 0.630 | 0.931 | 0.752 | 0.970 | 0.836 |
+| Decision Tree | 0.898 | 0.653 | 0.743 | 0.695 | 0.835 | 0.525 |
+| Random Forest | 0.920 | 0.724 | 0.793 | 0.757 | 0.965 | 0.834 |
+| XGBoost | 0.926 | 0.765 | 0.761 | 0.763 | 0.968 | 0.837 |
+| LightGBM | 0.933 | 0.764 | 0.825 | 0.793 | 0.972 | 0.855 |
+| **CatBoost (final)** | 0.931 | 0.762 | 0.817 | 0.789 | 0.970 | **0.855** |
 
 *(Note: CatBoost metrics above are at default threshold 0.5. At the tuned threshold of 0.40 used in production, CatBoost achieves Precision 0.710, Recall 0.870, F1 0.782 — prioritizing recall to reduce missed buyers.)*
 
-**Final model (CatBoost) — selected for highest PR-AUC (0.856):**
-- PR-AUC: 0.856 (best among all 6 models)
+**Final model (CatBoost) — selected for PR-AUC (tied best, 0.855):**
+- PR-AUC: 0.855 (tied with LightGBM; ahead of the other 4 models)
 - At tuned threshold (0.40): Precision 0.710, Recall 0.870, F1 0.782
 
-**Cross-validation:** 5-fold StratifiedKFold on SMOTE-resampled training data gave a mean PR-AUC of 0.9929 (std 0.0007), confirming training stability. This is higher than the test-set PR-AUC (0.856) because CV ran on balanced (50/50) resampled data — the test-set score remains the realistic, imbalanced-data estimate.
+**Cross-validation:** 5-fold StratifiedKFold on SMOTE-resampled training data gave a mean PR-AUC of 0.9929 (std 0.0007), confirming training stability. This is higher than the test-set PR-AUC (0.855) because CV ran on balanced (50/50) resampled data — the test-set score remains the realistic, imbalanced-data estimate.
 
 ## 4. Threshold Decision
 
@@ -88,7 +88,7 @@ SHAP (SHapley Additive exPlanations) was used to interpret the CatBoost model's 
 
 - **Missing month data:** The dataset has no sessions from January or April, meaning the model has never seen these months during training. Although `OneHotEncoder(handle_unknown="ignore")` prevents errors on unseen categories, the model has no learned signal for these months and may perform unpredictably if used for these periods.
 
-- **Synthetic oversampling (SMOTE):** Class balancing was done using SMOTE, which generates synthetic minority-class samples. While this helped the model learn buyer patterns better, cross-validation performed on this synthetic balanced data (PR-AUC 0.9929) is noticeably higher than real-world test performance (PR-AUC 0.856) — a reminder that SMOTE-based CV metrics can be overly optimistic and shouldn't be used alone to judge real-world performance.
+- **Synthetic oversampling (SMOTE):** Class balancing was done using SMOTE, which generates synthetic minority-class samples. While this helped the model learn buyer patterns better, cross-validation performed on this synthetic balanced data (PR-AUC 0.9929) is noticeably higher than real-world test performance (PR-AUC 0.855) — a reminder that SMOTE-based CV metrics can be overly optimistic and shouldn't be used alone to judge real-world performance.
 
 - **Threshold trade-off:** The tuned threshold (0.40) intentionally favors recall over precision, meaning the model will flag more false positives (non-buyers incorrectly predicted as buyers) in exchange for catching more true buyers. This trade-off may need reassessment if the cost of false positives (e.g., marketing spend) changes.
 
