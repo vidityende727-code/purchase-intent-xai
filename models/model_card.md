@@ -52,24 +52,24 @@ All 6 models were evaluated on the held-out test set (2,400 sessions, natural im
 | LightGBM | 0.933 | 0.764 | 0.825 | 0.793 | 0.972 | 0.855 |
 | **CatBoost (final)** | 0.931 | 0.762 | 0.817 | 0.789 | 0.970 | **0.855** |
 
-*(Note: CatBoost metrics above are at default threshold 0.5. At the tuned threshold of 0.40 used in production, CatBoost achieves Precision 0.710, Recall 0.870, F1 0.782 — prioritizing recall to reduce missed buyers.)*
+*(Note: CatBoost metrics above are at default threshold 0.5. At the tuned threshold of 0.40 used in production, CatBoost achieves Precision 0.721, Recall 0.849, F1 0.780 — prioritizing recall to reduce missed buyers.)*
 
 **Final model (CatBoost) — selected for PR-AUC (tied best, 0.855):**
 - PR-AUC: 0.855 (tied with LightGBM; ahead of the other 4 models)
-- At tuned threshold (0.40): Precision 0.710, Recall 0.870, F1 0.782
+- At tuned threshold (0.40): Precision 0.721, Recall 0.849, F1 0.780
 
-**Cross-validation:** 5-fold StratifiedKFold on SMOTE-resampled training data gave a mean PR-AUC of 0.9929 (std 0.0007), confirming training stability. This is higher than the test-set PR-AUC (0.855) because CV ran on balanced (50/50) resampled data — the test-set score remains the realistic, imbalanced-data estimate.
+**Cross-validation:** 5-fold StratifiedKFold on SMOTE-resampled training data gave a mean PR-AUC of 0.9932 (std 0.0007), confirming training stability. This is higher than the test-set PR-AUC (0.855) because CV ran on balanced (50/50) resampled data — the test-set score remains the realistic, imbalanced-data estimate.
 
 ## 4. Threshold Decision
 
 By default, classification models use a 0.5 probability threshold to decide the predicted class. However, in this business context, **missing a buyer (false negative)** is more costly than a **false alarm (false positive)** — a missed buyer means a lost sale opportunity, while a false alarm just means an extra (low-cost) marketing nudge to a non-buyer.
 
-To account for this, threshold values from 0.2 to 0.5 were tested on the CatBoost model to find the one that maximizes F1 score while favoring recall. The results showed:
+To account for this, threshold values from 0.2 to 0.5 were tested on the CatBoost model to compare the precision, recall and F1 trade-off at each level. The results showed:
 
-- **Default threshold (0.5):** F1 = 0.779
-- **Tuned threshold (0.40):** F1 = 0.782, Precision = 0.710, Recall = 0.870
+- **Default threshold (0.5):** F1 = 0.789, Precision = 0.762, Recall = 0.817
+- **Tuned threshold (0.40):** F1 = 0.780, Precision = 0.721, Recall = 0.849
 
-The tuned threshold of **0.40** was selected as the final decision threshold because it improves recall (catching more actual buyers) while maintaining a slightly better F1 score than the default. This means the model is intentionally biased toward flagging more sessions as "likely to purchase," reducing missed sales opportunities at the cost of a few more false positives. 
+The tuned threshold of **0.40** was selected as the final decision threshold because it improves recall (0.849 vs 0.817, about 3 percentage points more of the actual buyers caught) at a modest cost in precision (0.721 vs 0.762). The default 0.5 threshold gives a marginally higher F1 (0.789 vs 0.780), so 0.40 is a deliberate recall-first choice rather than an F1-optimal one. This means the model is intentionally biased toward flagging more sessions as "likely to purchase," reducing missed sales opportunities at the cost of a few more false positives. 
 
 ## 5. Key Explainability Findings (SHAP)
 
@@ -88,7 +88,7 @@ SHAP (SHapley Additive exPlanations) was used to interpret the CatBoost model's 
 
 - **Missing month data:** The dataset has no sessions from January or April, meaning the model has never seen these months during training. Although `OneHotEncoder(handle_unknown="ignore")` prevents errors on unseen categories, the model has no learned signal for these months and may perform unpredictably if used for these periods.
 
-- **Synthetic oversampling (SMOTE):** Class balancing was done using SMOTE, which generates synthetic minority-class samples. While this helped the model learn buyer patterns better, cross-validation performed on this synthetic balanced data (PR-AUC 0.9929) is noticeably higher than real-world test performance (PR-AUC 0.855) — a reminder that SMOTE-based CV metrics can be overly optimistic and shouldn't be used alone to judge real-world performance.
+- **Synthetic oversampling (SMOTE):** Class balancing was done using SMOTE, which generates synthetic minority-class samples. While this helped the model learn buyer patterns better, cross-validation performed on this synthetic balanced data (PR-AUC 0.9932) is noticeably higher than real-world test performance (PR-AUC 0.855) — a reminder that SMOTE-based CV metrics can be overly optimistic and shouldn't be used alone to judge real-world performance.
 
 - **Threshold trade-off:** The tuned threshold (0.40) intentionally favors recall over precision, meaning the model will flag more false positives (non-buyers incorrectly predicted as buyers) in exchange for catching more true buyers. This trade-off may need reassessment if the cost of false positives (e.g., marketing spend) changes.
 
