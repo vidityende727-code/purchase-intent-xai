@@ -76,12 +76,12 @@ The tuned threshold of **0.40** was selected as the final decision threshold bec
 SHAP (SHapley Additive exPlanations) was used to interpret the CatBoost model's predictions, using `shap.TreeExplainer` since CatBoost is a tree-based model.
 
 **Global Feature Importance:**
-- **PageValues** is by far the most influential feature, with a mean absolute SHAP importance of 4.04 — nearly **5.6x higher** than the second-most important feature, `ProductRelated` (0.72).
+- **PageValues** is by far the most influential feature, with a mean absolute SHAP importance of 4.09 — roughly **10x higher** than the second-most important feature, `ProductRelated` (0.41); the engineered feature `TotalPagesViewed` ranks third (0.26).
 - This finding mathematically confirms the earlier EDA observation that buyers had roughly 10x higher PageValues than non-buyers, making it the strongest behavioral signal of purchase intent.
 - The summary plot showed clear, logical directionality: high **PageValues** and **ProductRelated** push predictions toward "buyer," while high **ExitRates** and **BounceRates** push predictions toward "non-buyer" — consistent with intuitive user behavior (engaged users convert more; users who bounce/exit quickly don't).
 
 **Local (Per-Prediction) Explainability:**
-- A sample buyer session was explained individually: the model predicted a **66.98% purchase probability**, driven almost entirely by a strong positive contribution from PageValues (+3.81 SHAP value), which outweighed several negative-pulling features (e.g., fewer ProductRelated pages, a specific TrafficType).
+- A sample buyer session was explained individually:  the model predicted a **77.82% purchase probability**, led by a positive contribution from PageValues (+1.57 SHAP value), with the engineered feature TotalPagesViewed (+0.50) and ProductRelated (+0.39) also pushing toward purchase, partly offset by negative contributions from Region 3 (-0.32) and December (-0.26).
 - This demonstrates that SHAP can explain not just overall feature importance, but also the specific trade-off of factors behind any single prediction — useful for building trust in individual model decisions (e.g., "why did the model flag this customer as likely to buy?"). 
 
 ## 6. Limitations
