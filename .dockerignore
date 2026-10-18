@@ -11,3 +11,6 @@ tests/
 .vscode/
 *.md
 !README.md
+.env
+.env.*
+!.env.example
