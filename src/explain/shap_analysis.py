@@ -52,6 +52,10 @@ def get_global_importance(shap_values, feature_names) -> pd.DataFrame:
 
 
 def plot_summary(shap_values, X_transformed, feature_names, save_path=None):
+    # SHAP needs a dense array to color dots by feature value
+    if hasattr(X_transformed, "toarray"):
+        X_transformed = X_transformed.toarray()
+
     plt.figure()
     shap.summary_plot(
         shap_values, X_transformed, feature_names=feature_names, show=False
