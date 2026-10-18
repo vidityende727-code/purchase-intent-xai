@@ -5,7 +5,7 @@ services:
       dockerfile: Dockerfile.api
     image: purchase-intent-api
     ports:
-      - "8000:8000"
+      - "${API_PORT:-8000}:8000"
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
       interval: 15s
@@ -19,7 +19,7 @@ services:
       dockerfile: Dockerfile.dashboard
     image: purchase-intent-dashboard
     ports:
-      - "8501:8501"
+      - "${DASHBOARD_PORT:-8501}:8501"
     environment:
       - API_URL=http://api:8000
     depends_on:
