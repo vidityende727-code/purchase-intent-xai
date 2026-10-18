@@ -8,6 +8,18 @@ During model selection, six algorithms were trained and compared: Logistic Regre
 
 CatBoost's strength likely comes from its native handling of categorical features — the dataset has 7 categorical columns (e.g., Month, VisitorType, TrafficType), and CatBoost is specifically designed for datasets with many categorical variables. LightGBM performed almost identically on this dataset, so the choice reflects CatBoost's native categorical handling and the fact that the full pipeline (API, SHAP, LIME) is built around it, rather than a clear performance win. 
 
+## 1.5 Intended Use and Business Context
+
+**Intended use:** This model estimates the probability that an e-commerce browsing session ends in a purchase. It is meant to help prioritise low-cost marketing actions (for example a targeted nudge or offer) for sessions that look likely to convert, and to support analysis of which behavioural signals relate to purchase intent.
+
+**Business framing:** Missing a real buyer (false negative) is treated as more costly than sending an unnecessary nudge to a non-buyer (false positive). For that reason the primary metric is PR-AUC (the dataset is imbalanced) and the decision threshold is set to 0.40 rather than 0.5, favouring recall. Exact order values and intervention costs are not modelled here; if they are known, the threshold should be re-tuned against them.
+
+**Out-of-scope uses:**
+- Identifying or tracking individual people. The model works on session-level behavioural features and must not be linked to personally identifying data.
+- Automated decisions with significant effects on individuals (for example pricing or access decisions) without human review.
+- Early-session scoring, because the model depends heavily on PageValues (see section 5.5).
+- Use on other sites, markets or time periods without re-validation. The model was trained on a single dataset of 12,000 sessions.
+
 ## 2. Training Data
 
 The dataset consists of **12,000 e-commerce sessions** with 17 original features (18 including the target), sourced from `ecommerce_sessions.csv`. The target variable is `Converted`, indicating whether the session resulted in a purchase.
@@ -83,6 +95,16 @@ SHAP (SHapley Additive exPlanations) was used to interpret the CatBoost model's 
 **Local (Per-Prediction) Explainability:**
 - A sample buyer session was explained individually:  the model predicted a **77.82% purchase probability**, led by a positive contribution from PageValues (+1.57 SHAP value), with the engineered feature TotalPagesViewed (+0.50) and ProductRelated (+0.39) also pushing toward purchase, partly offset by negative contributions from Region 3 (-0.32) and December (-0.26).
 - This demonstrates that SHAP can explain not just overall feature importance, but also the specific trade-off of factors behind any single prediction — useful for building trust in individual model decisions (e.g., "why did the model flag this customer as likely to buy?"). 
+
+## 5.5 PageValues: Availability at Scoring Time
+
+PageValues is the dominant predictor (mean absolute SHAP 4.09, roughly 10x the second-most important feature). It reflects the value of pages visited in the session, including pages close to checkout, so it is only meaningful once a session has progressed far enough for it to be populated. The model assumes PageValues is known at scoring time.
+
+Local explanations show how strongly the model relies on it: in two sampled non-buying test sessions (rows 1855 and 1569), PageValues alone contributed -5.11 and -4.75 SHAP, driving the predicted purchase probability down to 0.12% and 0.05%.
+
+**Decision:** PageValues is retained as a feature. The model is intended for sessions where PageValues is available (for example late-session or post-session targeting). It should not be used as an early-session predictor: when PageValues is missing or near zero, predictions will be unreliable.
+
+**Not yet done:** a train-with vs train-without PageValues comparison to quantify the performance gap for early-session use.
 
 ## 6. Limitations
 
